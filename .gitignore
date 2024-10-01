@@ -1,0 +1,5 @@
+/config
+.env
+/docker/mysql
+/docker/redis/data
+/.idea

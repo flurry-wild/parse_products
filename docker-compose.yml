@@ -1,0 +1,45 @@
+version: '3'
+services:
+  app:
+    build:
+      context: ./project
+      dockerfile: ./../docker/Dockerfile
+    image: my-laravel-app
+    container_name: guest-app
+    restart: unless-stopped
+    depends_on:
+      - database
+    environment:
+      XDEBUG_CONFIG: "client_host=host.docker.internal remote_port=9003"
+      PHP_IDE_CONFIG: "serverName=${SERVER_NAME}"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "80:80"
+    volumes:
+      - ./project:/var/www/html
+      - ./docker/config/php/php.ini:/usr/local/etc/php/php.ini
+      - ./docker/config/apache/000-default.conf:/etc/apache2/sites-available/000-default.conf
+  database:
+    image: mariadb
+    container_name: guest-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - ./docker/mysql:/var/lib/mysql
+      - ./docker/config/init.db:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
+  redis:
+    image: redis:latest
+    container_name: redis-server
+    restart: always
+    volumes:
+      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./docker/redis/data:/data
+    ports:
+      - "6379:6379"
